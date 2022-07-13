@@ -30,25 +30,31 @@ MAX_REGULAR_TIMESTAMP = (datetime(9999, 1, 1) - datetime(1970,1,1)).total_second
 SEC_PER_YEAR = 365.25*24*3600
 
 def makeMSStepper(stepSize):
-    def stepper(val, n):
+    def stepper(val, n, start: bool):
         if val < MIN_REGULAR_TIMESTAMP or val > MAX_REGULAR_TIMESTAMP:
             return np.inf
-        
-        val *= 1000
-        f = stepSize * 1000
-        return (val // (n*f) + 1) * (n*f) / 1000.0
+
+        if start:
+            val *= 1000
+            f = stepSize * 1000
+            return (val // (n*f) + 1) * (n*f) / 1000.0
+        else:
+            return val + n*stepSize
     return stepper
 
 def makeSStepper(stepSize):
-    def stepper(val, n):
+    def stepper(val, n, start: bool):
         if val < MIN_REGULAR_TIMESTAMP or val > MAX_REGULAR_TIMESTAMP:
             return np.inf
-        
-        return (val // (n*stepSize) + 1) * (n*stepSize)
+
+        if start:
+            return (val // (n*stepSize) + 1) * (n*stepSize)
+        else:
+            return val + n*stepSize
     return stepper
 
 def makeMStepper(stepSize):
-    def stepper(val, n):
+    def stepper(val, n, start: bool):
         if val < MIN_REGULAR_TIMESTAMP or val > MAX_REGULAR_TIMESTAMP:
             return np.inf
         
@@ -59,7 +65,7 @@ def makeMStepper(stepSize):
     return stepper
 
 def makeYStepper(stepSize):
-    def stepper(val, n):
+    def stepper(val, n, start: bool):
         if val < MIN_REGULAR_TIMESTAMP or val > MAX_REGULAR_TIMESTAMP:
             return np.inf
         
@@ -100,10 +106,10 @@ class TickSpec:
     def makeTicks(self, minVal, maxVal, minSpc):
         ticks = []
         n = self.skipFactor(minSpc)
-        x = self.step(minVal, n)
+        x = self.step(minVal, n, start=True)
         while x <= maxVal:
             ticks.append(x)
-            x = self.step(x, n)
+            x = self.step(x, n, start=False)
         return (np.array(ticks), n)
 
     def skipFactor(self, minSpc):

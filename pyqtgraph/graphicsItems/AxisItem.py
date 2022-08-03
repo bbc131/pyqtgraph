@@ -59,6 +59,7 @@ class AxisItem(GraphicsWidget):
             'tickTextHeight': 18,
             'autoExpandTextSpace': True,  ## automatically expand text space if needed
             'autoReduceTextSpace': True,
+            'hideOverlappingLabels': True,
             'tickFont': None,
             'stopAxisAtTick': (False, False),  ## whether axis is drawn to edge of box or to last tick
             'textFillLimits': [  ## how much of the axis to fill up with tick text, maximally.
@@ -607,6 +608,7 @@ class AxisItem(GraphicsWidget):
                 self.setRange(*newRange)
 
     def boundingRect(self):
+        m = 0 if self.style['hideOverlappingLabels'] else 15
         linkedView = self.linkedView()
         if linkedView is None or self.grid is False:
             rect = self.mapRectFromParent(self.geometry())
@@ -614,13 +616,13 @@ class AxisItem(GraphicsWidget):
             ## also extend to account for text that flows past the edges
             tl = self.style['tickLength']
             if self.orientation == 'left':
-                rect = rect.adjusted(0, -15, -min(0,tl), 15)
+                rect = rect.adjusted(0, -m, -min(0,tl), m)
             elif self.orientation == 'right':
-                rect = rect.adjusted(min(0,tl), -15, 0, 15)
+                rect = rect.adjusted(min(0,tl), -m, 0, m)
             elif self.orientation == 'top':
                 rect = rect.adjusted(-15, 0, 15, -min(0,tl))
             elif self.orientation == 'bottom':
-                rect = rect.adjusted(-15, min(0,tl), 15, 0)
+                rect = rect.adjusted(-m, min(0,tl), m, 0)
             return rect
         else:
             return self.mapRectFromParent(self.geometry()) | linkedView.mapRectToItem(self, linkedView.boundingRect())
@@ -1143,6 +1145,7 @@ class AxisItem(GraphicsWidget):
                 #self.textHeight = height
                 offset = max(0,self.style['tickLength']) + textOffset
 
+                rect = QtCore.QRectF()
                 if self.orientation == 'left':
                     alignFlags = QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignVCenter
                     rect = QtCore.QRectF(tickStop-offset-width, x-(height/2), width, height)
@@ -1159,6 +1162,11 @@ class AxisItem(GraphicsWidget):
                 textFlags = alignFlags | QtCore.Qt.TextFlag.TextDontClip    
                 #p.setPen(self.pen())
                 #p.drawText(rect, textFlags, vstr)
+
+                br = self.boundingRect()
+                if not br.contains(rect):
+                    continue
+
                 textSpecs.append((rect, textFlags, vstr))
         profiler('compute text')
 

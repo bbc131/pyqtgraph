@@ -1,11 +1,11 @@
 name: main
 
-on:
-  push:
-    branches-ignore: "dependabot/**"
-  pull_request:
-    paths-ignore:
-      - '**.md'
+on: workflow_dispatch
+  # push:
+  #   branches-ignore: "dependabot/**"
+  # pull_request:
+  #   paths-ignore:
+  #     - '**.md'
 
 env:
   PIP_DISABLE_PIP_VERSION_CHECK: 1
